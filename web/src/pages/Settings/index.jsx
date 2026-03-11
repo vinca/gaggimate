@@ -1,13 +1,13 @@
 import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
 import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { computed } from '@preact/signals';
+import { computed, useSignalEffect } from '@preact/signals';
 import { useQuery } from 'preact-fetching';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
 import Card from '../../components/Card.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { timezones } from '../../config/zones.js';
-import { machine } from '../../services/ApiService.js';
+import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { DASHBOARD_LAYOUTS, setDashboardLayout } from '../../utils/dashboardManager.js';
 import { downloadJson } from '../../utils/download.js';
 import { getStoredTheme, handleThemeChange } from '../../utils/themeManager.js';
@@ -17,6 +17,7 @@ import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash';
 
 const ledControl = computed(() => machine.value.capabilities.ledControl);
 const pressureAvailable = computed(() => machine.value.capabilities.pressure);
+const connected = computed(() => machine.value.connected);
 
 export function Settings() {
   const [submitting, setSubmitting] = useState(false);
@@ -27,6 +28,8 @@ export function Settings() {
   const [autowakeupSchedules, setAutoWakeupSchedules] = useState([
     { time: '07:00', days: [true, true, true, true, true, true, true] }, // Default: all days enabled
   ]);
+  const [profiles, setProfiles] = useState([]);
+  const apiService = useContext(ApiServiceContext);
   const { isLoading, data: fetchedSettings } = useQuery(`settings/${gen}`, async () => {
     const response = await fetch(`/api/settings`);
     const data = await response.json();
@@ -34,6 +37,16 @@ export function Settings() {
   });
 
   const formRef = useRef();
+
+  // Fetch profiles for startup profile dropdown (wait for WebSocket connection)
+  useSignalEffect(() => {
+    const loadProfiles = async () => {
+      if (!apiService || !connected.value) return;
+      const response = await apiService.request({ tp: 'req:profiles:list' });
+      setProfiles(response.profiles);
+    };
+    loadProfiles();
+  });
 
   useEffect(() => {
     if (fetchedSettings) {
@@ -345,6 +358,25 @@ export function Settings() {
                 <option value='brew' selected={formData.startupMode === 'brew'}>
                   Brew
                 </option>
+              </select>
+            </div>
+            <div className='form-control mb-4'>
+              <label htmlFor='startup-profile' className='mb-2 block text-sm font-medium'>
+                Startup Profile
+              </label>
+              <select
+                id='startup-profile'
+                name='startupProfile'
+                className='select select-bordered w-full'
+                value={formData.startupProfile || ''}
+                onChange={onChange('startupProfile')}
+              >
+                <option value=''>Last used profile</option>
+                {profiles.map(profile => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className='form-control mb-4'>

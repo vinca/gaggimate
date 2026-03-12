@@ -186,6 +186,20 @@ void WebUIPlugin::setupServer() {
               [](AsyncWebServerRequest *request) { request->redirect(LOCAL_URL); });       // firefox captive portal call home
     server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); }); // firefox captive portal call home
     server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(LOCAL_URL); }); // windows call home
+    server.on("/api/profiles/list", [this](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        JsonDocument doc;
+        auto arr = doc["profiles"].to<JsonArray>();
+        for (auto const &id : profileManager->listProfiles()) {
+            Profile profile{};
+            profileManager->loadProfile(id, profile);
+            auto p = arr.add<JsonObject>();
+            p["id"] = profile.id;
+            p["label"] = profile.label;
+        }
+        serializeJson(doc, *response);
+        request->send(response);
+    });
     server.on("/api/settings", [this](AsyncWebServerRequest *request) { handleSettings(request); });
     server.on("/api/status", [this](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");

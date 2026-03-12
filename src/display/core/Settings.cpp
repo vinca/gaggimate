@@ -42,7 +42,7 @@ Settings::Settings() {
     timezone = preferences.getString("tz", DEFAULT_TIMEZONE);
     clock24hFormat = preferences.getBool("clk_24h", true);
     selectedProfile = preferences.getString("sp", "");
-    startupProfile = preferences.getString("sup", "");  // Empty = last used profile
+    startupProfile = preferences.getString("sup", ""); // Empty = last used profile
     favoritedProfiles = explode(preferences.getString("fp", ""), ',');
     profileOrder = explode(preferences.getString("po", ""), ',');
     steamPumpPercentage = preferences.getFloat("spp", DEFAULT_STEAM_PUMP_PERCENTAGE);

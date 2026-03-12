@@ -176,7 +176,7 @@ class Settings {
     bool dirty = false;
 
     String selectedProfile;
-    String startupProfile;  // Empty or "last" = last used profile, otherwise profile ID
+    String startupProfile; // Empty = last used profile, otherwise profile ID
     int targetSteamTemp = 155;
     int targetWaterTemp = 80;
     int temperatureOffset = DEFAULT_TEMPERATURE_OFFSET;

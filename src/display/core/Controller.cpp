@@ -1,6 +1,7 @@
 #include "Controller.h"
 #include "ArduinoJson.h"
 #include "esp_sntp.h"
+#include "esp_wifi.h"
 #include <SD_MMC.h>
 #include <SPIFFS.h>
 #include <ctime>
@@ -198,12 +199,34 @@ void Controller::setupInfos() {
     }
 }
 
+void Controller::connectWifi(const String &ssid, const String &password) {
+    // Configure WPA3 support with PMF (Protected Management Frames)
+    // This enables connection to WPA3 networks including those with GCMP-256 ciphers
+    wifi_config_t wifi_config = {};
+    strncpy((char *)wifi_config.sta.ssid, ssid.c_str(), sizeof(wifi_config.sta.ssid) - 1);
+    strncpy((char *)wifi_config.sta.password, password.c_str(), sizeof(wifi_config.sta.password) - 1);
+
+    // Set auth mode threshold to allow WPA2/WPA3 mixed mode and WPA3
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
+
+    // Enable PMF (required for WPA3)
+    wifi_config.sta.pmf_cfg.capable = true;
+    wifi_config.sta.pmf_cfg.required = false;  // Set to false to allow fallback to WPA2 if needed
+
+    // Apply the WiFi configuration and connect using ESP-IDF API
+    // This bypasses WiFi.begin() to ensure our WPA3/PMF config is used
+    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    esp_wifi_connect();
+}
+
 void Controller::setupWifi() {
     if (settings.getWifiSsid() != "" && settings.getWifiPassword() != "") {
         WiFi.setHostname(settings.getMdnsName().c_str());
         WiFi.mode(WIFI_STA);
         WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
-        WiFi.begin(settings.getWifiSsid(), settings.getWifiPassword());
+
+        connectWifi(settings.getWifiSsid(), settings.getWifiPassword());
+
         WiFi.setTxPower(WIFI_POWER_19_5dBm);
         WiFi.setAutoReconnect(true);
         for (int attempts = 0; attempts < WIFI_CONNECT_ATTEMPTS; attempts++) {

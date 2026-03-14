@@ -109,6 +109,7 @@ class Controller {
     void setupBluetooth();
     void setupInfos();
     void setupWifi();
+    void connectWifi(const String &ssid, const String &password);
 
     // Functional methods
     void updateControl();

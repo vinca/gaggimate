@@ -134,8 +134,14 @@ void Controller::setupPanel() {
 #endif
 
 void Controller::setupBluetooth() {
-    lastScanTime = millis();
     clientController.initClient();
+    clientController.registerDisconnectCallback([this]() {
+        if (initialized) {
+            pluginManager->trigger("controller:bluetooth:disconnect");
+            waitingForController = true;
+            setMode(MODE_STANDBY);
+        }
+    });
     clientController.registerSensorCallback(
         [this](const float temp, const float pressure, const float puckFlow, const float pumpFlow, const float puckResistance) {
             onTempRead(temp);
@@ -221,7 +227,8 @@ void Controller::setupWifi() {
                          WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
             WiFi.onEvent(
                 [this](WiFiEvent_t, WiFiEventInfo_t info) {
-                    ESP_LOGI(LOG_TAG, "Lost WiFi connection. Reason: %s", WiFi.disconnectReasonName(static_cast<wifi_err_reason_t>(info.wifi_sta_disconnected.reason)));
+                    ESP_LOGI(LOG_TAG, "Lost WiFi connection. Reason: %s",
+                             WiFi.disconnectReasonName(static_cast<wifi_err_reason_t>(info.wifi_sta_disconnected.reason)));
                     pluginManager->trigger("controller:wifi:disconnect");
                 },
                 WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
@@ -269,30 +276,21 @@ void Controller::loop() {
         pluginManager->trigger("controller:bluetooth:waiting");
     }
 
-    // Periodically restart BLE scan while waiting for the controller to appear.
-    if (initialized && !clientController.isConnected() &&
-        (now - lastScanTime) > (NimBLEClientController::BLE_SCAN_DURATION_SECONDS * 1000UL + 500UL)) {
-        lastScanTime = now;
-        clientController.scan();
-    }
-
-    if (clientController.isReadyForConnection()) {
+    if (clientController.isReadyForConnection() && clientController.connectToServer()) {
         waitingForController = false;
-        clientController.connectToServer();
         setupInfos();
-        pluginManager->trigger("controller:bluetooth:connect");
+        ESP_LOGI(LOG_TAG, "setting pressure scale to %.2f\n", settings.getPressureScaling());
+        setPressureScale();
+        clientController.sendPidSettings(settings.getPid());
+        clientController.sendPumpModelCoeffs(settings.getPumpModelCoeffs());
         if (!loaded) {
             loaded = true;
             if (settings.getStartupMode() == MODE_STANDBY)
                 activateStandby();
 
-            ESP_LOGI(LOG_TAG, "setting pressure scale to %.2f\n", settings.getPressureScaling());
-            setPressureScale();
-            clientController.sendPidSettings(settings.getPid());
-            clientController.sendPumpModelCoeffs(settings.getPumpModelCoeffs());
-
             pluginManager->trigger("controller:ready");
         }
+        pluginManager->trigger("controller:bluetooth:connect");
     }
 
     if (isErrorState()) {

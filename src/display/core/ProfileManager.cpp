@@ -113,7 +113,7 @@ bool ProfileManager::loadProfile(const String &uuid, Profile &outProfile) {
         return false;
     }
     outProfile.selected = outProfile.id == _settings.getSelectedProfile();
-    std::vector<String> favoritedProfiles = _settings.getFavoritedProfiles();
+    const auto &favoritedProfiles = _settings.getFavoritedProfiles();
     outProfile.favorite = std::find(favoritedProfiles.begin(), favoritedProfiles.end(), outProfile.id) != favoritedProfiles.end();
     return true;
 }
@@ -176,7 +176,7 @@ bool ProfileManager::loadSelectedProfile(Profile &outProfile) { return loadProfi
 
 std::vector<String> ProfileManager::getFavoritedProfiles(bool validate) {
 
-    auto rawFavorites = _settings.getFavoritedProfiles();
+    const auto &rawFavorites = _settings.getFavoritedProfiles();
     std::vector<String> result;
 
     auto storedProfileOrder = _settings.getProfileOrder();

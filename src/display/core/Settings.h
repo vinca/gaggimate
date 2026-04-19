@@ -91,7 +91,7 @@ class Settings {
     bool isClock24hFormat() const { return clock24hFormat; }
     String getSelectedProfile() const { return selectedProfile; }
     String getStartupProfile() const { return startupProfile; }
-    std::vector<String> getFavoritedProfiles() const { return favoritedProfiles; }
+    const std::vector<String> &getFavoritedProfiles() const { return favoritedProfiles; }
     std::vector<String> getProfileOrder() const { return profileOrder; }
     int getMainBrightness() const { return mainBrightness; }
     int getStandbyBrightness() const { return standbyBrightness; }

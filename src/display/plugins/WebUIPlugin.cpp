@@ -753,6 +753,8 @@ void WebUIPlugin::updateOTAStatus(const String &version) {
         doc["heapLargest"] = static_cast<uint32_t>(largest);
         doc["heapTotal"] = static_cast<uint32_t>(total);
     }
+    doc["controllerTaskHealth"] = controller->isTaskHealthy();
+    doc["uiTaskHealth"] = controller->getUI()->isTaskHealthy();
     if (controller->isSDCard()) {
         const uint64_t total = SD_MMC.cardSize();
         const uint64_t used = SD_MMC.usedBytes();

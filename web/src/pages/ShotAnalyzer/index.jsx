@@ -111,7 +111,8 @@ function findPreferredProfileMatch(allProfiles, shotProfileName, shotSource, sho
     const idMatches = allProfiles.filter(
       profile => String(profile.profileId || profile.id || '').trim() === targetId,
     );
-    const preferredIdMatch = idMatches.find(profile => profile.source === shotSource) || idMatches[0];
+    const preferredIdMatch =
+      idMatches.find(profile => profile.source === shotSource) || idMatches[0];
     if (preferredIdMatch) return preferredIdMatch;
   }
 

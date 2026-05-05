@@ -1026,11 +1026,7 @@ export function Settings() {
             <a href='/' className='btn btn-outline'>
               Back
             </a>
-            <button
-              type='submit'
-              className='btn btn-primary'
-              disabled={submitting}
-            >
+            <button type='submit' className='btn btn-primary' disabled={submitting}>
               {submitting && <Spinner size={4} />} Save
             </button>
             <button

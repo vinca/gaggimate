@@ -11,7 +11,9 @@ const DB_NAME = 'gaggimate-analyzer';
 const DB_VERSION = 3;
 
 function normalizeStoredProfile(profile = {}) {
-  const label = String(profile.label || profile.name || profile.fileName || profile.exportName || '').trim();
+  const label = String(
+    profile.label || profile.name || profile.fileName || profile.exportName || '',
+  ).trim();
   if (!label) return null;
 
   const normalized = {

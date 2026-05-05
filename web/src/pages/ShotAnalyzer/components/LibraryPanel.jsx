@@ -166,9 +166,7 @@ function doesProfileMatchShot(profile, shot, fallbackProfileName = '') {
   const expectedProfileName = cleanName(shot.profile || '').toLowerCase();
   if (!expectedProfileName) return false;
 
-  return (
-    getProfileDisplayLabel(profile, fallbackProfileName).toLowerCase() === expectedProfileName
-  );
+  return getProfileDisplayLabel(profile, fallbackProfileName).toLowerCase() === expectedProfileName;
 }
 
 function doesProfileMatchProfile(profile, selectedProfile, selectedProfileName = '') {
@@ -1644,7 +1642,11 @@ export function LibraryPanel({
                       }}
                       getActiveStatus={item =>
                         primaryDisplayProfile &&
-                        doesProfileMatchProfile(item, primaryDisplayProfile, primaryDisplayProfileName)
+                        doesProfileMatchProfile(
+                          item,
+                          primaryDisplayProfile,
+                          primaryDisplayProfileName,
+                        )
                       }
                       getPinStatus={item => isProfilePinned(item, pinnedProfiles)}
                       getPinDisabledReason={getProfilePinDisabledReason}

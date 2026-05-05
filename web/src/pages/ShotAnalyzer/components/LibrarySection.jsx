@@ -26,7 +26,13 @@ function getLibraryItemKey(item, isShot) {
 
   if (item.source === 'gaggimate') {
     return `gaggimate-profile:${String(
-      item.profileId || item.id || item.label || item.name || item.fileName || item.exportName || '',
+      item.profileId ||
+        item.id ||
+        item.label ||
+        item.name ||
+        item.fileName ||
+        item.exportName ||
+        '',
     )}`;
   }
 
